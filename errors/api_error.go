@@ -22,6 +22,6 @@ func CommonSuccessResponse(c *gin.Context, data any) {
 	})
 }
 
-func CommonErrorResponse(c *gin.Context, resp CommonResponse) {
+func CommonErrorResponse(c *gin.Context, resp *CommonResponse) {
 	c.JSON(resp.StatusCode, resp)
 }

@@ -62,7 +62,7 @@ func TestGetAllUsersMapsModelsToDTOs(t *testing.T) {
 	service := NewUserService(repo)
 
 	users, total, resp := service.GetAllUsers(10, 0)
-	if resp != apierrors.SuccessResponse {
+	if resp != nil {
 		t.Fatalf("expected success, got %#v", resp)
 	}
 	if total != 4 {
@@ -80,7 +80,7 @@ func TestGetUserByIDMapsNoRowsToUserNotFound(t *testing.T) {
 	if user != nil {
 		t.Fatalf("expected nil user, got %#v", user)
 	}
-	if resp != apierrors.ErrorNotFound {
+	if resp == nil || resp.Code != apierrors.ErrorNotFound.Code {
 		t.Fatalf("expected ErrorNotFound, got %#v", resp)
 	}
 }
@@ -92,7 +92,7 @@ func TestCreateUserDefaultsRole(t *testing.T) {
 	service := NewUserService(repo)
 
 	user, resp := service.CreateUser(dtos.UserDTO{Username: "John", Email: "john@example.com"})
-	if resp != apierrors.SuccessResponse {
+	if resp != nil {
 		t.Fatalf("expected success, got %#v", resp)
 	}
 	if repo.createArg.Role != "user" {
@@ -110,7 +110,7 @@ func TestUpdateUserMapsNoRowsToUserNotFound(t *testing.T) {
 	if user != nil {
 		t.Fatalf("expected nil user, got %#v", user)
 	}
-	if resp != apierrors.ErrorNotFound {
+	if resp == nil || resp.Code != apierrors.ErrorNotFound.Code {
 		t.Fatalf("expected ErrorNotFound, got %#v", resp)
 	}
 }

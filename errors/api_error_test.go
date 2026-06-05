@@ -34,7 +34,7 @@ func TestCommonErrorResponse(t *testing.T) {
 	recorder := httptest.NewRecorder()
 	ctx, _ := gin.CreateTestContext(recorder)
 
-	CommonErrorResponse(ctx, ErrorBadRequest)
+	CommonErrorResponse(ctx, &ErrorBadRequest)
 
 	if recorder.Code != http.StatusBadRequest {
 		t.Fatalf("expected status %d, got %d", http.StatusBadRequest, recorder.Code)

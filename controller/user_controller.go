@@ -22,7 +22,7 @@ func (c *UserController) GetAllUsers(ctx *gin.Context) {
 	if err := ctx.ShouldBindQuery(&req); err != nil {
 		resp := apierrors.ErrorBadRequest
 		resp.Message = "invalid query parameters"
-		apierrors.CommonErrorResponse(ctx, resp)
+		apierrors.CommonErrorResponse(ctx, &resp)
 		return
 	}
 	page := ctx.DefaultQuery("page", "1")
@@ -33,14 +33,14 @@ func (c *UserController) GetAllUsers(ctx *gin.Context) {
 	if err != nil || pageInt < 1 {
 		resp := apierrors.ErrorBadRequest
 		resp.Message = "invalid page number"
-		apierrors.CommonErrorResponse(ctx, resp)
+		apierrors.CommonErrorResponse(ctx, &resp)
 		return
 	}
 	perPageInt, err := strconv.Atoi(perPage)
 	if err != nil || perPageInt < 1 {
 		resp := apierrors.ErrorBadRequest
 		resp.Message = "invalid per_page number"
-		apierrors.CommonErrorResponse(ctx, resp)
+		apierrors.CommonErrorResponse(ctx, &resp)
 		return
 	}
 
@@ -49,7 +49,7 @@ func (c *UserController) GetAllUsers(ctx *gin.Context) {
 	offset := (pageInt - 1) * perPageInt
 
 	users, total, resp := c.service.GetAllUsers(limit, offset)
-	if resp != apierrors.SuccessResponse {
+	if resp != nil {
 		apierrors.CommonErrorResponse(ctx, resp)
 		return
 	}
@@ -69,12 +69,12 @@ func (c *UserController) GetUserByID(ctx *gin.Context) {
 	if err != nil {
 		resp := apierrors.ErrorBadRequest
 		resp.Message = "invalid user id"
-		apierrors.CommonErrorResponse(ctx, resp)
+		apierrors.CommonErrorResponse(ctx, &resp)
 		return
 	}
 
 	user, resp := c.service.GetUserByID(idInt)
-	if resp != apierrors.SuccessResponse {
+	if resp != nil {
 		apierrors.CommonErrorResponse(ctx, resp)
 		return
 	}
@@ -88,7 +88,7 @@ func (c *UserController) CreateUser(ctx *gin.Context) {
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		resp := apierrors.ErrorBadRequest
 		resp.Message = "invalid request body"
-		apierrors.CommonErrorResponse(ctx, resp)
+		apierrors.CommonErrorResponse(ctx,& resp)
 		return
 	}
 
@@ -98,7 +98,7 @@ func (c *UserController) CreateUser(ctx *gin.Context) {
 			Email:    req.Email,
 			Role:     "user", // Default role for new users
 		}) // convert request DTO to service DTO
-	if resp != apierrors.SuccessResponse {
+	if resp != nil {
 		apierrors.CommonErrorResponse(ctx, resp)
 		return
 	}
@@ -112,7 +112,7 @@ func (c *UserController) UpdateUser(ctx *gin.Context) {
 	if err != nil {
 		resp := apierrors.ErrorBadRequest
 		resp.Message = "invalid user id"
-		apierrors.CommonErrorResponse(ctx, resp)
+		apierrors.CommonErrorResponse(ctx, &resp)
 		return
 	}
 
@@ -120,7 +120,7 @@ func (c *UserController) UpdateUser(ctx *gin.Context) {
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		resp := apierrors.ErrorBadRequest
 		resp.Message = "invalid request body"
-		apierrors.CommonErrorResponse(ctx, resp)
+		apierrors.CommonErrorResponse(ctx, &resp)
 		return
 	}
 
@@ -129,7 +129,7 @@ func (c *UserController) UpdateUser(ctx *gin.Context) {
 		Email:    req.Email,
 		Role:     req.Role, // Allow role update if provided
 	})
-	if resp != apierrors.SuccessResponse {
+	if resp != nil {
 		apierrors.CommonErrorResponse(ctx, resp)
 		return
 	}
@@ -143,11 +143,11 @@ func (c *UserController) DeleteUser(ctx *gin.Context) {
 	if err != nil {
 		resp := apierrors.ErrorBadRequest
 		resp.Message = "invalid user id"
-		apierrors.CommonErrorResponse(ctx, resp)
+		apierrors.CommonErrorResponse(ctx, &resp)
 		return
 	}
 
-	if resp := c.service.DeleteUser(idInt); resp != apierrors.SuccessResponse {
+	if resp := c.service.DeleteUser(idInt); resp != nil {
 		apierrors.CommonErrorResponse(ctx, resp)
 		return
 	}

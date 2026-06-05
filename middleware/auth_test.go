@@ -14,38 +14,30 @@ import (
 
 type fakeUserService struct {
 	user *dtos.UserDTO
-	resp apierrors.CommonResponse
+	resp *apierrors.CommonResponse // nil means success
 }
 
-// respOrSuccess lets tests leave resp unset (zero value) to mean a successful call.
-func (f *fakeUserService) respOrSuccess() apierrors.CommonResponse {
-	if f.resp == (apierrors.CommonResponse{}) {
-		return apierrors.SuccessResponse
+func (f *fakeUserService) GetAllUsers(limit, offset int) ([]dtos.UserDTO, int, *apierrors.CommonResponse) {
+	return nil, 0, f.resp
+}
+
+func (f *fakeUserService) GetUserByID(id int) (*dtos.UserDTO, *apierrors.CommonResponse) {
+	if f.resp != nil {
+		return nil, f.resp
 	}
+	return f.user, nil
+}
+
+func (f *fakeUserService) CreateUser(userDTO dtos.UserDTO) (*dtos.UserDTO, *apierrors.CommonResponse) {
+	return nil, f.resp
+}
+
+func (f *fakeUserService) UpdateUser(id int, userDTO dtos.UserDTO) (*dtos.UserDTO, *apierrors.CommonResponse) {
+	return nil, f.resp
+}
+
+func (f *fakeUserService) DeleteUser(id int) *apierrors.CommonResponse {
 	return f.resp
-}
-
-func (f *fakeUserService) GetAllUsers(limit, offset int) ([]dtos.UserDTO, int, apierrors.CommonResponse) {
-	return nil, 0, f.respOrSuccess()
-}
-
-func (f *fakeUserService) GetUserByID(id int) (*dtos.UserDTO, apierrors.CommonResponse) {
-	if resp := f.respOrSuccess(); resp != apierrors.SuccessResponse {
-		return nil, resp
-	}
-	return f.user, apierrors.SuccessResponse
-}
-
-func (f *fakeUserService) CreateUser(userDTO dtos.UserDTO) (*dtos.UserDTO, apierrors.CommonResponse) {
-	return nil, f.respOrSuccess()
-}
-
-func (f *fakeUserService) UpdateUser(id int, userDTO dtos.UserDTO) (*dtos.UserDTO, apierrors.CommonResponse) {
-	return nil, f.respOrSuccess()
-}
-
-func (f *fakeUserService) DeleteUser(id int) apierrors.CommonResponse {
-	return f.respOrSuccess()
 }
 
 func setupMiddlewareRouter(service services.UserService, handlers ...gin.HandlerFunc) *gin.Engine {
