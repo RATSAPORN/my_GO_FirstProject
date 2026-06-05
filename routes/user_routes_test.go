@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"example/controller"
 	"example/dtos"
+	apierrors "example/errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -14,24 +15,24 @@ import (
 
 type fakeUserService struct{}
 
-func (f *fakeUserService) GetAllUsers(limit, offset int) ([]dtos.UserDTO, int, error) {
-	return []dtos.UserDTO{{ID: 1, Username: "Alice", Email: "alice@example.com", Role: "admin"}}, 1, nil
+func (f *fakeUserService) GetAllUsers(limit, offset int) ([]dtos.UserDTO, int, apierrors.CommonResponse) {
+	return []dtos.UserDTO{{ID: 1, Username: "Alice", Email: "alice@example.com", Role: "admin"}}, 1, apierrors.SuccessResponse
 }
 
-func (f *fakeUserService) GetUserByID(id int) (*dtos.UserDTO, error) {
-	return &dtos.UserDTO{ID: id, Username: "Alice", Email: "alice@example.com", Role: "admin"}, nil
+func (f *fakeUserService) GetUserByID(id int) (*dtos.UserDTO, apierrors.CommonResponse) {
+	return &dtos.UserDTO{ID: id, Username: "Alice", Email: "alice@example.com", Role: "admin"}, apierrors.SuccessResponse
 }
 
-func (f *fakeUserService) CreateUser(userDTO dtos.UserDTO) (*dtos.UserDTO, error) {
-	return &dtos.UserDTO{ID: 2, Username: userDTO.Username, Email: userDTO.Email, Role: "user"}, nil
+func (f *fakeUserService) CreateUser(userDTO dtos.UserDTO) (*dtos.UserDTO, apierrors.CommonResponse) {
+	return &dtos.UserDTO{ID: 2, Username: userDTO.Username, Email: userDTO.Email, Role: "user"}, apierrors.SuccessResponse
 }
 
-func (f *fakeUserService) UpdateUser(id int, userDTO dtos.UserDTO) (*dtos.UserDTO, error) {
-	return &dtos.UserDTO{ID: id, Username: userDTO.Username, Email: userDTO.Email, Role: userDTO.Role}, nil
+func (f *fakeUserService) UpdateUser(id int, userDTO dtos.UserDTO) (*dtos.UserDTO, apierrors.CommonResponse) {
+	return &dtos.UserDTO{ID: id, Username: userDTO.Username, Email: userDTO.Email, Role: userDTO.Role}, apierrors.SuccessResponse
 }
 
-func (f *fakeUserService) DeleteUser(id int) error {
-	return nil
+func (f *fakeUserService) DeleteUser(id int) apierrors.CommonResponse {
+	return apierrors.SuccessResponse
 }
 
 func setupTestServer(t *testing.T) *httptest.Server {

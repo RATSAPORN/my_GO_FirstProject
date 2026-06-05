@@ -3,6 +3,7 @@ package middleware
 import (
 	"encoding/json"
 	"example/dtos"
+	apierrors "example/errors"
 	"example/services"
 	"net/http"
 	"net/http/httptest"
@@ -13,30 +14,38 @@ import (
 
 type fakeUserService struct {
 	user *dtos.UserDTO
-	err  error
+	resp apierrors.CommonResponse
 }
 
-func (f *fakeUserService) GetAllUsers(limit, offset int) ([]dtos.UserDTO, int, error) {
-	return nil, 0, f.err
-}
-
-func (f *fakeUserService) GetUserByID(id int) (*dtos.UserDTO, error) {
-	if f.err != nil {
-		return nil, f.err
+// respOrSuccess lets tests leave resp unset (zero value) to mean a successful call.
+func (f *fakeUserService) respOrSuccess() apierrors.CommonResponse {
+	if f.resp == (apierrors.CommonResponse{}) {
+		return apierrors.SuccessResponse
 	}
-	return f.user, nil
+	return f.resp
 }
 
-func (f *fakeUserService) CreateUser(userDTO dtos.UserDTO) (*dtos.UserDTO, error) {
-	return nil, f.err
+func (f *fakeUserService) GetAllUsers(limit, offset int) ([]dtos.UserDTO, int, apierrors.CommonResponse) {
+	return nil, 0, f.respOrSuccess()
 }
 
-func (f *fakeUserService) UpdateUser(id int, userDTO dtos.UserDTO) (*dtos.UserDTO, error) {
-	return nil, f.err
+func (f *fakeUserService) GetUserByID(id int) (*dtos.UserDTO, apierrors.CommonResponse) {
+	if resp := f.respOrSuccess(); resp != apierrors.SuccessResponse {
+		return nil, resp
+	}
+	return f.user, apierrors.SuccessResponse
 }
 
-func (f *fakeUserService) DeleteUser(id int) error {
-	return f.err
+func (f *fakeUserService) CreateUser(userDTO dtos.UserDTO) (*dtos.UserDTO, apierrors.CommonResponse) {
+	return nil, f.respOrSuccess()
+}
+
+func (f *fakeUserService) UpdateUser(id int, userDTO dtos.UserDTO) (*dtos.UserDTO, apierrors.CommonResponse) {
+	return nil, f.respOrSuccess()
+}
+
+func (f *fakeUserService) DeleteUser(id int) apierrors.CommonResponse {
+	return f.respOrSuccess()
 }
 
 func setupMiddlewareRouter(service services.UserService, handlers ...gin.HandlerFunc) *gin.Engine {

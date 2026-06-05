@@ -2,8 +2,8 @@ package services
 
 import (
 	"database/sql"
-	"errors"
 	"example/dtos"
+	apierrors "example/errors"
 	"example/models"
 	"testing"
 )
@@ -61,9 +61,9 @@ func TestGetAllUsersMapsModelsToDTOs(t *testing.T) {
 	}
 	service := NewUserService(repo)
 
-	users, total, err := service.GetAllUsers(10, 0)
-	if err != nil {
-		t.Fatalf("expected no error, got %v", err)
+	users, total, resp := service.GetAllUsers(10, 0)
+	if resp != apierrors.SuccessResponse {
+		t.Fatalf("expected success, got %#v", resp)
 	}
 	if total != 4 {
 		t.Fatalf("expected total 4, got %d", total)
@@ -76,12 +76,12 @@ func TestGetAllUsersMapsModelsToDTOs(t *testing.T) {
 func TestGetUserByIDMapsNoRowsToUserNotFound(t *testing.T) {
 	service := NewUserService(&fakeUserRepository{err: sql.ErrNoRows})
 
-	user, err := service.GetUserByID(99)
+	user, resp := service.GetUserByID(99)
 	if user != nil {
 		t.Fatalf("expected nil user, got %#v", user)
 	}
-	if !errors.Is(err, ErrUserNotFound) {
-		t.Fatalf("expected ErrUserNotFound, got %v", err)
+	if resp != apierrors.ErrorNotFound {
+		t.Fatalf("expected ErrorNotFound, got %#v", resp)
 	}
 }
 
@@ -91,9 +91,9 @@ func TestCreateUserDefaultsRole(t *testing.T) {
 	}
 	service := NewUserService(repo)
 
-	user, err := service.CreateUser(dtos.UserDTO{Username: "John", Email: "john@example.com"})
-	if err != nil {
-		t.Fatalf("expected no error, got %v", err)
+	user, resp := service.CreateUser(dtos.UserDTO{Username: "John", Email: "john@example.com"})
+	if resp != apierrors.SuccessResponse {
+		t.Fatalf("expected success, got %#v", resp)
 	}
 	if repo.createArg.Role != "user" {
 		t.Fatalf("expected create role user, got %q", repo.createArg.Role)
@@ -106,11 +106,11 @@ func TestCreateUserDefaultsRole(t *testing.T) {
 func TestUpdateUserMapsNoRowsToUserNotFound(t *testing.T) {
 	service := NewUserService(&fakeUserRepository{err: sql.ErrNoRows})
 
-	user, err := service.UpdateUser(99, dtos.UserDTO{Username: "Missing", Email: "missing@example.com"})
+	user, resp := service.UpdateUser(99, dtos.UserDTO{Username: "Missing", Email: "missing@example.com"})
 	if user != nil {
 		t.Fatalf("expected nil user, got %#v", user)
 	}
-	if !errors.Is(err, ErrUserNotFound) {
-		t.Fatalf("expected ErrUserNotFound, got %v", err)
+	if resp != apierrors.ErrorNotFound {
+		t.Fatalf("expected ErrorNotFound, got %#v", resp)
 	}
 }

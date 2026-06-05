@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"example/dtos"
+	apierrors "example/errors"
 	"example/services"
 	"net/http"
 	"net/http/httptest"
@@ -18,42 +19,50 @@ type fakeUserService struct {
 	user        *dtos.UserDTO
 	createdUser *dtos.UserDTO
 	updatedUser *dtos.UserDTO
-	err         error
+	resp        apierrors.CommonResponse
 	limit       int
 	offset      int
 	deletedID   int
 }
 
-func (f *fakeUserService) GetAllUsers(limit, offset int) ([]dtos.UserDTO, int, error) {
+// respOrSuccess lets tests leave resp unset (zero value) to mean a successful call.
+func (f *fakeUserService) respOrSuccess() apierrors.CommonResponse {
+	if f.resp == (apierrors.CommonResponse{}) {
+		return apierrors.SuccessResponse
+	}
+	return f.resp
+}
+
+func (f *fakeUserService) GetAllUsers(limit, offset int) ([]dtos.UserDTO, int, apierrors.CommonResponse) {
 	f.limit = limit
 	f.offset = offset
-	return f.users, f.total, f.err
+	return f.users, f.total, f.respOrSuccess()
 }
 
-func (f *fakeUserService) GetUserByID(id int) (*dtos.UserDTO, error) {
-	if f.err != nil {
-		return nil, f.err
+func (f *fakeUserService) GetUserByID(id int) (*dtos.UserDTO, apierrors.CommonResponse) {
+	if resp := f.respOrSuccess(); resp != apierrors.SuccessResponse {
+		return nil, resp
 	}
-	return f.user, nil
+	return f.user, apierrors.SuccessResponse
 }
 
-func (f *fakeUserService) CreateUser(userDTO dtos.UserDTO) (*dtos.UserDTO, error) {
-	if f.err != nil {
-		return nil, f.err
+func (f *fakeUserService) CreateUser(userDTO dtos.UserDTO) (*dtos.UserDTO, apierrors.CommonResponse) {
+	if resp := f.respOrSuccess(); resp != apierrors.SuccessResponse {
+		return nil, resp
 	}
-	return f.createdUser, nil
+	return f.createdUser, apierrors.SuccessResponse
 }
 
-func (f *fakeUserService) UpdateUser(id int, userDTO dtos.UserDTO) (*dtos.UserDTO, error) {
-	if f.err != nil {
-		return nil, f.err
+func (f *fakeUserService) UpdateUser(id int, userDTO dtos.UserDTO) (*dtos.UserDTO, apierrors.CommonResponse) {
+	if resp := f.respOrSuccess(); resp != apierrors.SuccessResponse {
+		return nil, resp
 	}
-	return f.updatedUser, nil
+	return f.updatedUser, apierrors.SuccessResponse
 }
 
-func (f *fakeUserService) DeleteUser(id int) error {
+func (f *fakeUserService) DeleteUser(id int) apierrors.CommonResponse {
 	f.deletedID = id
-	return f.err
+	return f.respOrSuccess()
 }
 
 func setupUserControllerRouter(service services.UserService) *gin.Engine {
@@ -128,7 +137,7 @@ func TestGetAllUsersInvalidPage(t *testing.T) {
 }
 
 func TestGetUserByIDNotFound(t *testing.T) {
-	router := setupUserControllerRouter(&fakeUserService{err: services.ErrUserNotFound})
+	router := setupUserControllerRouter(&fakeUserService{resp: apierrors.ErrorNotFound})
 
 	req := httptest.NewRequest(http.MethodGet, "/users/99", nil)
 	recorder := httptest.NewRecorder()
@@ -139,7 +148,7 @@ func TestGetUserByIDNotFound(t *testing.T) {
 	}
 
 	body := decodeResponse(t, recorder)
-	if body["code"] != "E101" || body["message"] != "user not found" {
+	if body["code"] != "E101" || body["message"] != "resource not found" {
 		t.Fatalf("expected not found wrapper, got %#v", body)
 	}
 }

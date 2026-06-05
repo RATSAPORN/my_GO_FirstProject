@@ -34,8 +34,8 @@ func AuthMiddleware(service services.UserService) gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, resp)
 			return
 		}
-		user, err := service.GetUserByID(id)
-		if err != nil || user == nil {
+		user, resp := service.GetUserByID(id)
+		if resp != apierrors.SuccessResponse || user == nil {
 			resp := apierrors.ErrorUnauthorized
 			resp.Message = "unknown user"
 			c.AbortWithStatusJSON(http.StatusUnauthorized, resp)

@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"errors"
 	"example/dtos"
 	apierrors "example/errors"
 	"example/services"
@@ -49,9 +48,9 @@ func (c *UserController) GetAllUsers(ctx *gin.Context) {
 	limit := perPageInt
 	offset := (pageInt - 1) * perPageInt
 
-	users, total, err := c.service.GetAllUsers(limit, offset)
-	if err != nil {
-		apierrors.CommonErrorResponse(ctx, apierrors.ErrorInternal)
+	users, total, resp := c.service.GetAllUsers(limit, offset)
+	if resp != apierrors.SuccessResponse {
+		apierrors.CommonErrorResponse(ctx, resp)
 		return
 	}
 	apierrors.CommonSuccessResponse(ctx, dtos.CommonPaginationData{
@@ -74,15 +73,9 @@ func (c *UserController) GetUserByID(ctx *gin.Context) {
 		return
 	}
 
-	user, err := c.service.GetUserByID(idInt)
-	if err != nil {
-		if errors.Is(err, services.ErrUserNotFound) {
-			resp := apierrors.ErrorNotFound
-			resp.Message = "user not found"
-			apierrors.CommonErrorResponse(ctx, resp)
-		} else {
-			apierrors.CommonErrorResponse(ctx, apierrors.ErrorInternal)
-		}
+	user, resp := c.service.GetUserByID(idInt)
+	if resp != apierrors.SuccessResponse {
+		apierrors.CommonErrorResponse(ctx, resp)
 		return
 	}
 
@@ -99,14 +92,14 @@ func (c *UserController) CreateUser(ctx *gin.Context) {
 		return
 	}
 
-	createdUser, err := c.service.CreateUser(
+	createdUser, resp := c.service.CreateUser(
 		dtos.UserDTO{
 			Username: req.Username,
 			Email:    req.Email,
 			Role:     "user", // Default role for new users
 		}) // convert request DTO to service DTO
-	if err != nil {
-		apierrors.CommonErrorResponse(ctx, apierrors.ErrorInternal)
+	if resp != apierrors.SuccessResponse {
+		apierrors.CommonErrorResponse(ctx, resp)
 		return
 	}
 	apierrors.CommonSuccessResponse(ctx, createdUser)
@@ -131,19 +124,13 @@ func (c *UserController) UpdateUser(ctx *gin.Context) {
 		return
 	}
 
-	updatedUser, err := c.service.UpdateUser(idInt, dtos.UserDTO{
+	updatedUser, resp := c.service.UpdateUser(idInt, dtos.UserDTO{
 		Username: req.Username,
 		Email:    req.Email,
 		Role:     req.Role, // Allow role update if provided
 	})
-	if err != nil {
-		if errors.Is(err, services.ErrUserNotFound) {
-			resp := apierrors.ErrorNotFound
-			resp.Message = "user not found"
-			apierrors.CommonErrorResponse(ctx, resp)
-		} else {
-			apierrors.CommonErrorResponse(ctx, apierrors.ErrorInternal)
-		}
+	if resp != apierrors.SuccessResponse {
+		apierrors.CommonErrorResponse(ctx, resp)
 		return
 	}
 	apierrors.CommonSuccessResponse(ctx, updatedUser)
@@ -160,15 +147,8 @@ func (c *UserController) DeleteUser(ctx *gin.Context) {
 		return
 	}
 
-	err = c.service.DeleteUser(idInt)
-	if err != nil {
-		if errors.Is(err, services.ErrUserNotFound) {
-			resp := apierrors.ErrorNotFound
-			resp.Message = "user not found"
-			apierrors.CommonErrorResponse(ctx, resp)
-		} else {
-			apierrors.CommonErrorResponse(ctx, apierrors.ErrorInternal)
-		}
+	if resp := c.service.DeleteUser(idInt); resp != apierrors.SuccessResponse {
+		apierrors.CommonErrorResponse(ctx, resp)
 		return
 	}
 	apierrors.CommonSuccessResponse(ctx, gin.H{"message": "user deleted successfully"})
