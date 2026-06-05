@@ -1,0 +1,45 @@
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Go build output
+bin/
+build/
+dist/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Go workspace / vendoring
+go.work
+go.work.sum
+vendor/
+
+# Test coverage and profiling
+coverage.out
+coverage.html
+*.coverprofile
+*.prof
+
+# Logs and runtime files
+*.log
+logs/
+tmp/
+temp/
+
+# IDE / editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+backend-common-lib/
